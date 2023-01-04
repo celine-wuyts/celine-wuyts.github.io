@@ -1,0 +1,7 @@
+[2,"\n"]
+[1,"Terminating existing preview server....DONE\n\nPreparing to preview\n"]
+[1,"\nWatching files for changes\nBrowse at http://localhost:6164/\n"]
+[1,"GET: /\n"]
+[1,"GET: /\n"]
+[1,"ERROR: Project _quarto.yml validation failed.\n\nIn file C:\\Users\\u0089828\\OneDrive - KU Leuven\\Documents\\academic_website\\_quarto.yml\n(line 22, columns 15--43) Key icon has value {{<fa brands researchgate>}}, which must be a string\n21:         href: https://www.linkedin.com/in/celine-wuyts-79312660\n22:       - icon: {{<fa brands researchgate>}}\n                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n23:         href: https://www.researchgate.net/profile/Celine-Wuyts\nx The value {{<fa brands researchgate>}} is object.\ni The error happened in location website:navbar:right:1:icon.\n\n"]
+[1,"ERROR: Project _quarto.yml validation failed.\n\nIn file C:\\Users\\u0089828\\OneDrive - KU Leuven\\Documents\\academic_website\\_quarto.yml\n(line 22, columns 15--43) Key icon has value {{<fa brands researchgate>}}, which must be a string\n21:         href: https://www.linkedin.com/in/celine-wuyts-79312660\n22:       - icon: {{<fa brands researchgate>}}\n                  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n23:         href: https://www.researchgate.net/profile/Celine-Wuyts\nx The value {{<fa brands researchgate>}} is object.\ni The error happened in location website:navbar:right:1:icon.\n\n"]

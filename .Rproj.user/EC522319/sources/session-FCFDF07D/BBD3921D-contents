@@ -1,0 +1,27 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: "Celine Wuyts"
+  favicon: kuleuven.ico
+  navbar:
+    left:
+      - href: index.qmd
+        text: About me
+      - href: gender_measurement.qmd
+        text: Gender measurement project
+    right:
+      - icon: linkedin
+        href: https://www.linkedin.com/in/celine-wuyts-79312660
+      - icon: book
+        href: https://www.researchgate.net/profile/Celine-Wuyts
+
+format:
+  html:
+    theme: 
+      - flatly
+      - styles.scss
+    toc: true
+
+

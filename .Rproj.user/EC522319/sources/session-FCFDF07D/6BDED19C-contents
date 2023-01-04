@@ -1,0 +1,48 @@
+---
+title: "About me"
+about:
+  template: jolla
+  image: me.jpg
+---
+
+I'm a survey methodologist, R devotee and lifelong student.
+
+I am associated with the [Centre for Sociological Research, University of Leuven](https://soc.kuleuven.be/ceso).
+
+I am enrolled in the [MIT Master’s in Data, Economics, and Development Policy (DEDP)](https://economics.mit.edu/academic-programs/masters-programs/masters-data-economics-and-development-policy-dedp)  
+(Class of 2023).
+
+
+{{< fa solid download >}} Download my [resumé](_assets/20220812 Celine Wuyts CV.pdf).
+
+{{< fa solid person-walking-arrow-right >}} Find me on {{< fa brands linkedin >}}[LinkedIn](https://www.linkedin.com/in/celine-wuyts-79312660) and {{< fa brands researchgate >}}[ResearchGate](https://www.researchgate.net/profile/Celine-Wuyts).
+
+
+::: {.column-page layout-ncol=2}
+
+::: {.column width="50%"}
+#### Skills
+
+{{< fa solid heart-circle-check >}} Survey management and coordination  
+{{< fa solid heart-circle-check >}} Questionnaire design and programming  
+{{< fa solid heart-circle-check >}} Statistical modeling  
+{{< fa solid heart-circle-check >}} Data wrangling, analysis and visualization  
+{{< fa solid heart-circle-check >}} Research reporting
+
+:::
+
+::: {.column width="50%"}
+#### Interests
+
+{{< fa solid heart-circle-bolt >}} Survey error as social artefacts  
+{{< fa solid heart-circle-bolt >}} Economic decision-making  
+{{< fa solid heart-circle-bolt >}} Gender stereotypes  
+{{< fa solid heart-circle-bolt >}} [Effective altruism](https://www.effectivealtruism.org/)  
+{{< fa solid heart-circle-bolt >}} Reproducible research
+
+:::
+:::
+
+
+
+

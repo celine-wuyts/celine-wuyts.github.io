@@ -1,0 +1,13 @@
+/*-- scss:defaults --*/
+
+$pink:          #e83283 !default;
+$lavendel:      #a4a0d0 !default;
+$primary:       $pink !default;
+$link-color:    $lavendel !default;
+
+/*-- scss:rules --*/
+
+.column {
+text-align: left;
+}
+

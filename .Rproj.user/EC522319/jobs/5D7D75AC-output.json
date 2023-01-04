@@ -1,0 +1,2 @@
+[2,"\n"]
+[1,"ERROR: Project _quarto.yml validation failed.\n\nIn file C:\\Users\\u0089828\\OneDrive - KU Leuven\\Documents\\academic_website\\_quarto.yml\n(line 32, column 5 through line 33, column 24) Key page-footer has value - left: \r\n      - text: A website, which must be a string\n31:   page-footer: \n32:     - left: \n        ~~~~~~~~\n33:       - text: A website\n    ~~~~~~~~~~~~~~~~~~~~~~~\nx The value - left: \r\n      - text: A website is an array.\ni The error happened in location website:page-footer.\n\n"]

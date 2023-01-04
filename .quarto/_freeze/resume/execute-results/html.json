@@ -1,0 +1,14 @@
+{
+  "hash": "347a7dec3449d2ffbb1f947e49682b41",
+  "result": {
+    "markdown": "---\nname: Celine\nsurname: Wuyts\nposition: \"PhD - Survey methodologist\"\naddress: \"Centre for Sociological Research, University of Leuven\"\nemail: \"celine.wuyts@kuleuven.be\"\ngithub: celine-wuyts\norcid: 0000-0002-0693-9217\ndate: \"January 2023\"\noutput: \n  vitae::awesomecv:\n    page_total: true\n---\n\n\n\n\n# Education\n\n\n::: {.cell}\n::: {.cell-output .cell-output-stdout}\n```\n# A tibble: 4 × 5\n  what                                                   when  with  where why  \n  <chr>                                                  <chr> <chr> <chr> <lis>\n1 \"Doctor in the Social Sciences\"                        June… KU L… \"Leu… <chr>\n2 \"MicroMasters in Data, Economics, and Development Pol… Febr… MITx… \"\"    <chr>\n3 \"Master of Statistics\"                                 Sept… KU L… \"Leu… <chr>\n4 \"Master of Science in Applied Economic Sciences: Busi… Sept… Univ… \"Ant… <chr>\n```\n:::\n:::\n\n\n# Publications\n\n\n::: {.cell}\n::: {.cell-output-display}\n::: {#bibliography}\nC:/Users/celin/AppData/Local/Temp/RtmpiqOjl3/file57d0d9836e.yaml\n:::\n:::\n:::\n",
+    "supporting": [],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

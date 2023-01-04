@@ -1,0 +1,5 @@
+[2,"\n"]
+[1,"Terminating existing preview server....DONE\n\nPreparing to preview\n"]
+[1,"[1/1] gender_measurement.qmd\n"]
+[1,"\r\n\r\nprocessing file: gender_measurement.qmd\r\n"]
+[1,"(*) NOTE: I saw chunk options \"child=\"I:/research_projects/2022-gender_measurement/c-output/test.qmd\"\r\n please go to https://yihui.org/knitr/options\r\n (it is likely that you forgot to quote \"character\" options)\r\nError in parse(text = code, keep.source = FALSE) : \r\n  <text>:1:14: unexpected INCOMPLETE_STRING\r\n1: alist( child=\"I:/research_projects/2022-gender_measurement/c-output/test.qmd )\r\n                 ^\r\nCalls: .main ... parse_params -> withCallingHandlers -> eval -> parse_only -> parse\r\nExecution halted\r\n"]

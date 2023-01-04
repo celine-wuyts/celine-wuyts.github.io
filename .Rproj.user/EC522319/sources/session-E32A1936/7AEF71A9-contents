@@ -1,0 +1,3 @@
+\addtokomafont{chapter}{\color{purple}}
+\addtokomafont{section}{\color{magenta}}
+\addtokomafont{subsection}{\color{green}}

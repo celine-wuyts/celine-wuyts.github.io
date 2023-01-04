@@ -1,0 +1,19 @@
+
+---
+title: "Gender measurement in survey research"
+subtitle: "Practice and attitudes in Belgium"
+
+---
+
+## "We" don’t need extra boxes: Progress towards inclusive gender measurement and the role of attitudes towards the gender binary
+
+### Abstract
+
+Survey researchers have rarely failed to collect data about respondents’ gender/sex, and have historically done so, without second thought or debate, by a binary measure that implies gender is understood as fixed, perfectly aligned with biological sex, and well observable by an interviewer either by sight or by ear. Over the past 10 years, more inclusive gender measurements have been developed and are increasingly more widely advocated. Some research institutions and agencies are in the process of reviewing their approaches accordingly. At the same time, the move towards self-completion survey modes, long underway and recently intensifying by the COVID-19 pandemic and the restrictions on in-person contacts, has made survey conditions more amenable to the proposed inclusive gender measurements, which depend critically on self-report.
+
+However, the move towards inclusive gender measurement is slow in practice, and many survey practitioners remain reluctant to make the switch, arguing that inclusive gender measurements would confuse or offend many respondents. The Belgian population is one of the most uncertainty avoiding in the world. People are generally uncomfortable with changing the way they think and practice, and intolerant of deviant persons and ideas. How uncomfortable are people really with changing the way they are presented one short question in forms and questionnaires?
+
+The aim of this study is twofold. First, to describe the current use of gender measurements in Belgium relative to international best practices and recommendations, and survey practitioners’ reluctance. Second, to analyze attitudes of the general population as a potential impediment, and to identify its antecedents. We make use of a direct measure of respondents’ preference regarding gender measurement in forms and questionnaires, which was implemented in a probability-based general-population web panel in Belgium.
+
+
+

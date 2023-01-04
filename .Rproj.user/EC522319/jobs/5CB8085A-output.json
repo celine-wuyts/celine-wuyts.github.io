@@ -1,0 +1,4 @@
+[2,"\n"]
+[1,"Terminating existing preview server....DONE\n\nPreparing to preview\n"]
+[1,"[1/1] bopp_sampling.qmd\n"]
+[1,"\r\n\r\nprocessing file: bopp_sampling.qmd\r\n(*) NOTE: I saw chunk options \"child=\"C:\\Users/u0089828/Universiteit Antwerpen/BOPP - Staff - Documents/Sampling/Sampling procedure/2-output/bopp_sampling_report.qmd\"\"\r\n please go to https://yihui.org/knitr/options\r\n (it is likely that you forgot to quote \"character\" options)\r\nError: '\\U' used without hex digits in character string starting \"\"C:\\U\"\r\nExecution halted\r\n"]

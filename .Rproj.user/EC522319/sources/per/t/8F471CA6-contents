@@ -1,0 +1,998 @@
+---
+title: "BOPP Sampling strategy"
+subtitle: "Summary, sample size plan and a procedure for selecting sampling points in municipalities"
+date: "`r format(Sys.time(), '%d %B %Y')`"
+author: "Celine Wuyts"
+output:
+  rmdformats::downcute:
+    number_sections: TRUE
+    df_print: paged
+  
+---
+
+```{r setup, include = FALSE}
+
+knitr::opts_chunk$set(echo = TRUE, warning = FALSE)
+
+#Sys.setlocale("LC_ALL", "English")
+
+options(tibble.width = Inf)
+
+```
+
+```{r load_libraries}
+
+library(tidyverse)
+library(readxl)
+library(fuzzyjoin)
+library(ggthemes)
+library(lubridate)
+
+```
+
+```{r set_design_parameters}
+
+target_net  <- data.frame(group       = c("nl", "fr"),
+                          n_panelists = c(2000, 2000))
+
+# expected_grecr <- 0.5
+# expected_pror <- 0.85
+# 
+# target_net  <- target_net %>%
+#      mutate(n_recruited = n_panelists / expected_pror,
+#             n_recruited = round(n_recruited / 10) * 10)
+
+prop_nl_in_BRU <- 0.1
+
+```
+
+```{r read_population_statistics}
+
+pop_nis5_socdem <- read_xlsx("input/TF_SOC_POP_STRUCT_2021.xlsx")
+pop_nis9_all    <- read_xlsx("input/OPENDATA_SECTOREN_2021.xlsx")
+
+```
+
+```{r read_area_codes}
+
+area_codes <- read_xlsx("input/CodingStandards_0.2_CW.xlsx",
+                        sheet = "ISO 3166-2 (areas)")
+
+```
+
+# Target population and accessible population
+
+<span style="color:red">The panel aims to be representative of all persons aged 16 and over, resident within private households in Belgium, regardless of their nationality or citizenship. Eligibility for panel membership is determined in two stages.
+
+First, all persons aged 16 and over and resident within private households in Belgium (excluding the German-speaking Community) are eligible to complete the recruitment questionnaire. The target population for the recruitment questionnaire is thus delineated by three formal criteria of eligibility, determined on the basis of registered information: (1) primary residence in Belgium (excluding the German-speaking Community), (2) primary residence in a private household, and (3) minimum age of 16 (no upper age limit). 
+
+Second, only persons able to join the panel to complete questionnaires in Dutch or French can effectively join the panel. One of the functions of the recruitment questionnaire will be to screen persons for eligibility, i.e., (4) literacy in either Dutch or French, and (5) permanent residence in a private household in Belgium, to join the panel.
+
+The accessible population for the recruitment questionnaire is determined by the available sampling frame and practical constraints. The gross samples for recruitment are drawn from the National Register of Natural Persons. This is the official database of Belgians and registered foreigners residing in Belgium and of registered Belgians residing abroad.  The National Register contains postal addresses to contact sample persons for recruitment into the panel, as well as the information elements necessary to restrict the gross samples by the formal eligibility criteria. Foreigners residing in Belgium but not registered in the National Register (illegal immigrants) are in practice excluded from the accessible population because their selection probability is effectively zero (undercoverage). Persons who are misclassified as in-scope based on the information in the National Register but reside abroad or in a collective household for more than 6 months or have deceased are identified as “ineligible” during recruitment (overcoverage).
+
+Excluded from the target population because of practical constraints are collective households such as retirement homes, student homes, religious institutions, or penal institutions (representing about 1.5% of the resident population in Belgium) and the nine municipalities of the German-speaking Community (representing 0.7% of the resident population in Belgium).</span>
+
+The BOPP staff is preparing the authorization request to obtain access to the National Register with Statbel as Trusted Third Party.
+
+```{r aggregate_nis}
+
+pop_nis9_coded <- pop_nis9_all %>% # This is full population
+     mutate(nis6 = str_sub(CD_SECTOR, 1, 6)) %>%
+     rename(nis5 = CD_REFNIS,
+            name_nl5 = TX_DESCR_NL) %>%
+     filter(TX_DESCR_SECTOR_NL != "NIET TE LOKALISEREN IN EEN SECTOR") %>%
+     filter(TOTAL > 0)
+
+pop_nis6 <- pop_nis9_coded %>%
+     group_by(nis5, name_nl5, nis6) %>%
+     summarize(total = sum(TOTAL),
+               nsect = length(unique(CD_SECTOR)),
+               name  = paste(TX_DESCR_SECTOR_NL, collapse = " - "))
+
+pop_nis5 <- pop_nis9_coded %>% 
+     group_by(nis5, name_nl5) %>%
+     summarize(total = sum(TOTAL),
+               nsect = length(unique(CD_SECTOR)),
+               name  = paste(TX_DESCR_SECTOR_NL, collapse = " - "))
+
+```
+
+```{r}
+
+nis5_by_nis6 <- pop_nis6 %>% group_by(nis5) %>% count(name = "nnis6")
+
+pop_nis6_named <- pop_nis6 %>% 
+     left_join(nis5_by_nis6, by = "nis5") %>%
+     mutate(names = word(string = name, start = 1, end = pmin(nsect, 5), sep = " - "),
+            name_nl6 = ifelse(nnis6 == 1, name_nl5, 
+                              paste0(name_nl5, " (", names, " - ...)")))
+
+```
+
+
+```{r exclude_germanspeaking_community}
+
+excluded_municipalities <- c("Eupen", # These are the 9 of the German-speaking community
+                             "Kelmis",
+                             "Lontzen",
+                             "Raeren",
+                             "Amel",
+                             "Büllingen",
+                             "Burg-Reuland",
+                             "Bütgenbach",
+                             "Sankt Vith")
+
+pop_nis6_nlfr <- pop_nis6_named %>%  filter(! name_nl5 %in% excluded_municipalities)
+pop_nis5_nlfr <- pop_nis5 %>%  filter(! name_nl5 %in% excluded_municipalities)
+
+excluded_municipalities %in% pop_nis6_named$name_nl5
+excluded_municipalities %in% pop_nis5$name_nl5
+nrow(pop_nis6_named)
+nrow(pop_nis5)
+
+excluded_municipalities %in% pop_nis6_nlfr$name_nl5
+excluded_municipalities %in% pop_nis5_nlfr$name_nl5
+nrow(pop_nis6_nlfr)
+nrow(pop_nis5_nlfr)
+
+```
+
+```{r exclude_children}
+
+# pop_nis5_16andabove <- pop_nis5_socdem %>% # This is 16+ population
+#      filter(! TX_DESCR_NL %in% excluded_municipalities) %>%
+#      filter(CD_AGE >= 16) 
+
+```
+
+```{r map_nis}
+
+nis5_nis2_nis1 <- pop_nis5_socdem %>% 
+     mutate(nis2 = ifelse(!is.na(CD_PROV_REFNIS), CD_PROV_REFNIS, CD_RGN_REFNIS)) %>%
+     select(nis5 = CD_REFNIS, 
+            nis2,
+            nis1 = CD_RGN_REFNIS) %>%
+     unique()
+
+pop_nis6_nlfr <- pop_nis6_nlfr %>%
+     left_join(nis5_nis2_nis1, by = "nis5")
+
+pop_nis5_nlfr <- pop_nis5_nlfr %>%
+     left_join(nis5_nis2_nis1, by = "nis5")
+
+```
+
+```{r explore_population_sizes}
+
+# Population size of different levels
+with(pop_nis9_coded,    summary(TOTAL))   # median sector is about 300 persons
+with(pop_nis6_nlfr,     summary(total))   # median district is about 1600 persons
+with(pop_nis5_nlfr,     summary(total))   # median municipality is about 13000 persons
+
+# Number of municipal districts/sectors by municipality
+n_districts_per_municip <- pop_nis6_nlfr %>%
+     group_by(name_nl5) %>%
+     count() %>%
+     arrange(-n)
+
+n_sectors_per_municip <- pop_nis6_nlfr %>%
+     group_by(name_nl5) %>%
+     summarize(n = sum(nsect))
+
+with(n_districts_per_municip, summary(n))
+with(n_sectors_per_municip,   summary(n))
+
+```
+
+```{r categorize_urbanicity}
+
+source("UrbanicityClassifications_0_2_CW.R")
+
+pop_nis5_nlfr <- pop_nis5_nlfr %>%
+     left_join(urbanicity, by = c("nis5", "nis1"))
+
+pop_nis6_nlfr <- pop_nis6_nlfr %>%
+     left_join(urbanicity, by = c("nis5", "nis1"))
+
+```
+
+# Sampling strategy
+
+The TG Sampling and Weighting proposed a two-staged clustered sample (within one domain) with clustering at the level of municipal districts (NIS6) for the initial cohort.
+
+At the **first stage***, 800 sampling points are randomly selected, clustered within municipal districts, explicitly stratified by NUTS2, and implicitly stratified by target population size.
+
+* *Frame:* List of `r nrow(pop_nis6_nlfr)` municipal districts (all municipal districts in Belgium excluding only the `r nrow(pop_nis6) - nrow(pop_nis6_nlfr)` in the `r nrow(pop_nis5) - nrow(pop_nis5_nlfr)` municipalities of the German-speaking community)
+* *Size:* 800 sampling points
+* *Procedure:* Systematic random selection with replacement, from a list of municipal districts ordered by their population size (i.e., implicit stratification by population size) (Multiple sampling points are drawn for larger municipal districts, with expected selection frequency proportional to the target population size.)
+* *Explicit stratification:* The NUTS2 administrative regions, i.e., the ten provinces in the Flemish and the Walloon Region and the Brussels-Capital Region (explicit stratification). The allocation across strata is proportional to the population size.
+
+<span style="color:red">Note: total population figures, without discounting -16 and persons resident in collective households</span>.
+
+The random selection of municipalities will be done by the BOPP staff (under the control of the TG Sampling and Weighting).
+
+Sampling points correspond to a fixed number of expected panelists (*n* = 5) and thus a varying number of gross sample persons depending on expected response rates, drawing on historic and current response rates achieved by (academic and governmental) face-to-face surveys of the general resident population in Belgium (the European Social Survey, the Belgian National Election Studies, the Participatiesurvey and the Sociaal Culturele Verschuivingen).
+
+At the **second stage**, persons within selected municipal districts are randomly selected by a systematic random sampling procedure with equal inclusion probabilities within the NUTS2 administrative regions, and implicitly stratified by <span style="color:red">age and gender</span>.
+
+* *Frame:* List of persons aged 16 years or over, resident within private households in Belgium, in the selected municipal districts from the National Register of Natural Persons
+* *Size:* <span style="color:red">8510 natural persons</span>
+* *Procedure:* Systematic random selection of persons within selected municipal districts, from a list of persons ordered by <span style="color:red">age and gender</span> (i.e., implicit stratification by age and gender).
+
+The sample will be drawn by <span style="color:red">Statbel</span>.
+
+> Discussion point: What should be the main sample selection specifications for Statbel/National Register? Implicit/explicit stratification by age and gender, and extend with something else (e.g., income deciles)? (But Recruitment agency would not receive variables like income that are not in the National Register authorization.)
+
+# Sample size plan
+
+## Net sample allocation across NUTS1
+
+The target net sample of *n* = `r target_net %>% filter(group == "nl") %>% pull(n_panelists)` Dutch-speaking and *n* = `r target_net %>% filter(group == "fr") %>% pull(n_panelists)` French-speaking panelists first has to be expressed in terms of a regional allocation. In order to do so (for ease of computation) `r scales::percent(prop_nl_in_BRU)` of residents in the Brussels-Capital Region are assumed to be Dutch-speaking, and residents in the Flemish Region and the Walloon Region are assumed to be exclusively Dutch-speaking and French-speaking, respectively.
+
+Because the two language groups are allocated equal parts of the total target net sample, any target net sample size allocation will require some weighting to correct for oversampling the Walloon Region and/or the Brussels-Capital Region, and thus some loss in statistical efficiency.^[If a larger (smaller) part of the total target net sample size is allocated to the Brussels-Capital Region relative to the Walloon Region, the misrepresentation within the Dutch-speaking sample will worsen (improve) and the misrepresentation within the French-speaking sample will improve (worsen). There is thus a trade-off between representation of the NUTS1 regions within the total target net sample and representation within either of the language samples. Here, the focus is on statistical efficiency of the total sample.] The target net sample of *n* = `r target_net %>% filter(group == "nl") %>% pull(n_panelists)` Dutch-speaking and *n* = `r target_net %>% filter(group == "fr") %>% pull(n_panelists)` French-speaking panelists may thus be achieved by that allocation that represents the smallest loss in statistical efficiency due to weighting.^[The loss in statistical efficiency due to clustering is not taken into account here.]
+
+```{r aggregate_nuts}
+
+pop_nuts1 <- pop_nis5_nlfr %>%  
+     group_by(nis1, iso, nuts) %>%
+     summarize(total = sum(total)) %>%
+     ungroup() %>%
+     mutate(frac = total / sum(total))
+
+```
+
+```{r aggregate_language_groups}
+
+pop_nuts1_lang <- pop_nuts1 %>%
+     mutate(nl = case_when(iso == "BE-BRU" ~ total * prop_nl_in_BRU,
+                           iso == "BE-VLG" ~ total,
+                           TRUE ~ 0),
+            fr = case_when(iso == "BE-BRU" ~ total * (1 - prop_nl_in_BRU),
+                           iso == "BE-WAL" ~ total,
+                           TRUE ~ 0)) %>%
+     select(-total, -frac) %>%
+     pivot_longer(cols = c("nl", "fr"), names_to = "lang", values_to = "total") %>%
+     filter(total > 0) 
+
+pop_nuts1_lang <- pop_nuts1_lang %>%
+     mutate(frac = total / sum(total)) %>%
+     group_by(lang) %>%
+     mutate(frac_inlang = total / sum(total)) %>%
+     ungroup()
+
+```
+
+In order to assess alternative allocations in terms of statistical efficiency, we compute, for a range of more or less plausible values for the size of the Brussels-Capital Region sample, the necessary weights. The design effect due to weighting and the net effective sample size are then found using Kish's design effect formula.
+
+$$deff_{p} = \frac{\sum_{i = 1}^{J} (w_{i}^{2}n_{i})}{(\sum_{i = 1}^{J} w_{i}n_{i})^{2}}n=\frac{w_{BRU}^{2}n_{BRU}+w_{VLG}^{2}n_{VLG}+w_{WAL}^{2}n_{WAL}}{(w_{BRU}n_{BRU}+w_{VLG}n_{VLG}+w_{WAL}n_{WAL})^2}n$$
+
+
+$$n_{eff} = \frac{n}{deff} = \frac{(\sum_{i = 1}^{J} w_{i}n_{i})^{2}}{\sum_{i = 1}^{J} (w_{i}^{2}n_{i})}=\frac{(w_{BRU}n_{BRU}+w_{VLG}n_{VLG}+w_{WAL}n_{WAL})^2}{w_{BRU}^{2}n_{BRU}+w_{VLG}^{2}n_{VLG}+w_{WAL}^{2}n_{WAL}}$$
+with $w_{i}$ the weight and $n_{i}$ the number of observations in the $i$th weighting class, and $n$ the total target net sample size.
+
+```{r simulate_allocations_total_weights}
+
+simulation_design <- data.frame(net_BRU = 200:1000) %>%
+     mutate(net_BRU_nl = net_BRU * prop_nl_in_BRU,
+            net_BRU_fr = net_BRU - net_BRU_nl,
+            net_VLG    = target_net %>% filter(group == "nl") %>% pull(n_panelists) - net_BRU_nl,
+            net_WAL    = target_net %>% filter(group == "fr") %>% pull(n_panelists) - net_BRU_fr,
+            net        = target_net %>% pull(n_panelists) %>% sum(),
+            w_BRU      = (pop_nuts1 %>% filter(iso == "BE-BRU") %>% pull(total) / net_BRU) / ((pop_nuts1 %>% pull(total) %>% sum()) / net),
+            w_VLG      = (pop_nuts1 %>% filter(iso == "BE-VLG") %>% pull(total) / net_VLG) / ((pop_nuts1 %>% pull(total) %>% sum()) / net),
+            w_WAL      = (pop_nuts1 %>% filter(iso == "BE-WAL") %>% pull(total) / net_WAL) / ((pop_nuts1 %>% pull(total) %>% sum()) / net),
+            deffp      = net * (w_BRU^2 * net_BRU + w_VLG^2 * net_VLG + w_WAL^2 * net_WAL) / 
+                 (w_BRU * net_BRU + w_VLG * net_VLG + w_WAL * net_WAL)^2,
+            neff       = net / deffp)
+
+simulation_design %>%
+     filter(net_BRU %in% seq(200, 1000, 100)) %>% 
+     select(net_BRU, w_BRU, w_VLG, w_WAL, neff, deffp)
+
+simulation_design %>% 
+     slice(which.min(deffp))
+
+```
+
+```{r allocate_across_regions}
+
+(target_net_nuts1_lang <- simulation_design %>% 
+     slice(which.min(deffp)) %>%
+     select(net_BRU_nl, net_VLG, net_BRU_fr, net_WAL) %>%
+     pivot_longer(cols = c("net_BRU_nl", "net_VLG", "net_BRU_fr", "net_WAL"),
+                  values_to = "target_net") %>% 
+     mutate(iso1  = paste0("BE-", str_sub(name, 5, 7)),
+            lang = str_sub(name, 9, 10),
+            lang = ifelse(lang == "", case_when(iso1 == "BE-VLG" ~ "nl", 
+                                                iso1 == "BE-WAL" ~ "fr"),
+                          lang),
+            frac = target_net / sum(target_net)) %>%
+     select(- name)  %>%
+     group_by(lang) %>%
+     mutate(frac_inlang = target_net / sum(target_net)))
+
+target_net_nuts1_lang <- target_net_nuts1_lang %>%
+     left_join(area_codes %>% select(nis1 = nis, nuts1 = nuts, iso1 = iso3166_2), by = "iso1")
+
+(target_net_nuts1 <- target_net_nuts1_lang %>%
+     group_by(nis1, nuts1, iso1) %>%
+     summarize(target_net = sum(target_net),
+               lang       = paste(lang, collapse = "+")))
+
+```
+
+The largest net effective sample size is achieved when `r target_net_nuts1 %>% filter(iso1 == "BE-BRU") %>% pull(target_net) %>% sum()` panelists are allocated to the Brussels-Capital Region sample. With this allocation, the Brussels-Capital Region is overrepresented within the total net sample, overrepresented within the Dutch-speaking sample, and slightly underrepresented within the French-speaking sample.
+ 
+```{r plot_net_effective, fig.height = 12/2.54, fig.width = 20/2.54, fig.cap = "Net effective sample size as a function of the Brussels-Capital Region sample"}
+
+p <- ggplot(simulation_design,
+             aes(x = net_BRU, y = neff)) +
+     geom_line(size = 1) +
+     scale_x_continuous(name = "Brussels-Capital Region sample", breaks = seq(0, 1000, 100)) +
+     scale_y_continuous(name = "Net effective sample size", breaks = seq(0, 4000, 50)) +
+     geom_vline(aes(xintercept = round(target_net_nuts1 %>% filter(iso1 == "BE-BRU") %>% pull(target_net))), 
+                    size = 2, 
+                    colour = rgb(r = 148, g = 77,  b = 195, maxColorValue = 255)) +
+     theme_tufte()
+
+p 
+
+ggsave(paste0("output/", format(Sys.time(), "%d-%m-%Y-%H%M"), "_plot_sample_size_efficiency.svg"),
+       plot = p,
+       device = "svg", width = 20, height = 12, units = "cm")
+
+```
+
+```{r plot_sample_allocations, fig.height = 8/2.54, fig.width = 20/2.54, fig.cap = "\\label{fig:plot_sample_allocations}Sample size allocation according to different strategies"}
+
+plot_data0 <- pop_nuts1_lang %>%
+     mutate(frac_inlang = frac_inlang / 2) %>%
+     select(iso, lang, frac, frac_inlang) 
+
+plot_data1 <- target_net_nuts1_lang %>%
+     mutate(target_prop = frac_inlang / 2) %>% 
+     select(iso = iso1, lang, target_net, target_prop) 
+
+plot_data <- plot_data1 %>%
+     left_join(plot_data0, by = c("iso", "lang"))
+
+plot_data %>% select(iso, target_net)
+
+plot_data <- plot_data %>%
+     pivot_longer(cols = c("frac", "frac_inlang", "target_prop")) %>%
+     mutate(category = paste(iso, lang, sep = "-"))
+
+col_categories <- c("BE-VLG-nl" = rgb(r = 148, g = 77,  b = 195, maxColorValue = 255),
+                    "BE-BRU-nl" = rgb(r = 80,  g = 59,  b = 177, maxColorValue = 255),
+                    "BE-BRU-fr" = rgb(r = 59,  g = 136, b = 177, maxColorValue = 255),
+                    "BE-WAL-fr" = rgb(r = 59,  g = 177, b = 120, maxColorValue = 255))
+
+lab_outcomes <- c("frac"         = "Target population",
+                  "frac_inlang"  = "Target population in language groups",
+                  "target_prop"  = "Target sample distribution")
+                     
+plot_data <- plot_data %>%
+     mutate(category = factor(category, levels = names(col_categories)),
+            name     = factor(name,     levels = names(lab_outcomes)),
+            name     = fct_rev(name))
+
+p <- ggplot(plot_data,
+             aes(x = value, y = name, fill = category)) +
+     geom_bar(stat = "identity", col = "white") +
+     scale_fill_manual(values = col_categories, guide = guide_legend(reverse = TRUE)) +
+     scale_x_continuous(breaks = seq(0, 1, .1), limits = c(0, 1), labels = scales::label_percent(accuracy = 1L)) +
+     scale_y_discrete(labels = lab_outcomes) +
+     geom_vline(xintercept = seq(0, 1, 0.1), col = "white") +
+     theme_tufte() +
+     theme(legend.position = "bottom",
+           legend.text = element_text(margin = margin(r = 2, unit = 'cm')),
+           legend.title = element_blank(),
+           legend.background = element_rect(fill = "white", colour = "white"),
+           axis.title.x = element_blank(),
+           axis.title.y = element_blank(),
+           axis.ticks.y = element_blank())
+
+p 
+
+ggsave(paste0("output/", format(Sys.time(), "%d-%m-%Y-%H%M"), "_plot_sample_size_plan.svg"),
+       plot = p,
+       device = "svg", width = 30, height = 4, units = "cm")
+     
+```
+
+## Net sample allocation across NUTS2 and urbanicity classes (explicit stratificaiton)
+
+This allocation in turn implies the following target net sample distribution across the strata + urbanicity types.
+
+```{r allocate_net_sample_size_strata}
+
+pop_nuts2 <- pop_nis5_nlfr %>%  
+     group_by(nis1, nis2, cluster_group) %>%
+     summarize(total = sum(total)) %>%
+     group_by(nis1) %>%
+     mutate(frac = total / sum(total)) %>%
+     ungroup()
+
+pop_nuts2 <- pop_nuts2 %>%
+     left_join(area_codes %>% select(nis2 = nis, nuts2 = nuts, iso = iso3166_2), by = "nis2")
+
+round_preserve_sum <- function(x, digits = 0) { # Source: https://biostatmatt.com/archives/2902
+     up <- 10 ^ digits
+     x <- x * up
+     y <- floor(x)
+     indices <- tail(order(x-y), round(sum(x)) - sum(y))
+     y[indices] <- y[indices] + 1
+     y / up
+     }
+
+target_net_strata <- pop_nuts2 %>%
+     left_join(target_net_nuts1, by = "nis1") %>%
+     mutate(target_net = frac * target_net,
+            n_sp       = round_preserve_sum(target_net / 5))
+
+target_net_strata %>% select(iso1, iso, cluster_group, target_net)
+
+```
+
+## Expected response rate
+
+```{r}
+
+(grr_current  <- read_xlsx("input/response rates/current_rates.xlsx"))
+
+expected_grr   <- 0.5
+expected_crecr <- 0.85
+expected_pror  <- 0.75
+
+```
+
+Under current conditions, we should expect to achieve a minimum recruitment questionnaire gross response rate of `r grr_current %>% filter(survey_round == "ess_2021_preliminary" & iso1 == "BE") %>% pull(grr) %>% scales::percent()` (the current, preliminary ESS response rate) and a maximum recruitment questionnaire gross response rate of `r (grr_current %>% filter(survey_round == "ess_2021_preliminary" & iso1 == "BE") %>% pull(grr) * grr_current %>% filter(survey_round == "gip_2012" & iso1 == "DE") %>% pull(grr) / grr_current %>% filter(survey_round == "ess_2012" & iso1 == "DE") %>% pull(grr)) %>% scales::percent()` (the current, preliminary ESS response rate, inflated by the relative difference between ESS and GIP response rates in order to account for the relative attractiveness of the GIP recruitment interview relative to a full ESS interview). In between, we may consider a medium scenario of `r expected_grr %>% scales::percent()` recruitment questionnaire gross response rate.
+
+Furthermore taking into drop-out between recruitment questionnaire and initial consent (recruitment) and between initial consent and effective registration (welcome survey), (optimistically) estimated at `r expected_crecr %>% scales::percent()` and `r expected_pror %>% scales::percent()`, respectively, gives the following net sample figures for each of these three scenarios.
+
+```{r}
+
+(grr_lower  <- grr_current %>%
+     filter(survey_round =="ess_2021_preliminary") %>%
+     mutate(recr      = grr * expected_crecr,
+            recr_pror = recr * expected_pror))
+
+(grr_upper  <- grr_current %>%
+     filter(survey_round =="ess_2021_preliminary") %>%
+     mutate(grr = grr * 
+                 0.55 / 
+                 grr_current %>% filter(survey_round == "ess_2021_preliminary" & iso1 == "BE") %>% pull(grr),
+            recr      = grr * expected_crecr,
+            recr_pror = recr * expected_pror))
+
+(grr_medium  <- grr_current %>%
+     filter(survey_round =="ess_2021_preliminary") %>%
+     mutate(grr = grr * 
+                 0.5 / 
+                 grr_current %>% filter(survey_round == "ess_2021_preliminary" & iso1 == "BE") %>% pull(grr),
+            recr      = grr * expected_crecr,
+            recr_pror = recr * expected_pror))
+
+```
+
+```{r}
+
+mean_grr_byclass  <- read.csv("output/30-06-2022-0113mean_grr_byclass.csv", sep = ";", dec = ".")
+
+(mean_grr_byclass <- mean_grr_byclass %>%
+     select(cluster_group, iso, emmean))
+
+```
+
+```{r}
+
+target_grr_clusters <- pop_nuts2 %>%
+     group_by(nis1, cluster_group) %>%
+     summarize(total = sum(total),
+               frac = sum(frac)) %>%
+     left_join(mean_grr_byclass, by = "cluster_group")
+
+overall_grr <- target_grr_clusters %>% 
+     ungroup() %>%
+     mutate(n = total * emmean) %>% 
+     summarize(n = sum(n), total = sum(total)) %>% 
+     mutate(grr = n/total)
+
+target_grr_clusters <- target_grr_clusters %>%
+     mutate(emmean_rel = emmean / overall_grr$grr,
+            grr_lower  = emmean_rel * 0.4,
+            grr_upper  = emmean_rel * 0.55,
+            grr_medium = emmean_rel * 0.5,
+            sp_size_lower = round(5 / grr_lower / expected_crecr / expected_pror),
+            sp_size_upper = round(5 / grr_upper / expected_crecr / expected_pror),
+            sp_size_medium = round(5 / grr_medium / expected_crecr / expected_pror))
+
+write.table(target_grr_clusters, paste0("output/",  format(Sys.time(), "%d-%m-%Y-%H%M"), "target_grr_clusters.csv"),
+            sep = ";",
+            dec = ".",
+            row.names = FALSE)
+
+```
+
+```{r}
+
+target_gross_strata <- target_net_strata %>%
+     left_join(mean_grr_byclass, by = c("iso1" = "iso", "cluster_group"))
+
+mean_grr_overall <- target_gross_strata %>% 
+     mutate(gross = target_net / emmean) %>% 
+     summarize(target_net = sum(target_net), gross = sum(gross)) %>%
+     mutate(grr = target_net / gross)
+
+target_gross_strata <- target_gross_strata %>%
+     mutate(emmean_rel = emmean / mean_grr_overall$grr)
+
+
+```
+
+### Lower-bound scenario
+
+```{r}
+
+target_gross_strata_lower <- target_gross_strata %>%
+     left_join(target_grr_clusters %>% select(nis1, cluster_group, grr_lower, sp_size_lower),
+               by = c("nis1", "cluster_group")) %>%
+     mutate(grr       = grr_lower,
+            sp_size   = sp_size_lower,
+            recr      = grr * expected_crecr,
+            recr_pror = recr * expected_pror,
+            gross     = n_sp * sp_size,
+            panelists_expected = n_sp * 5,
+            recruited_expected = panelists_expected / expected_pror,
+            respondents_expected = recruited_expected / expected_crecr) %>%
+     arrange(iso1, -grr_lower, -sp_size_lower)
+
+(target_gross_nuts2_lower <- target_gross_strata_lower %>%
+     group_by(nis2, iso) %>%
+     summarize(n_sp = sum(n_sp),
+               gross = sum(gross),
+               total = sum(total),
+               respondents_expected = sum(respondents_expected),
+               recruited_expected = sum(recruited_expected),
+               panelists_expected = sum(panelists_expected),
+               grr_implied = respondents_expected / gross,
+               recr_implied = recruited_expected / gross,
+               crecr_implied = recruited_expected / respondents_expected,
+               recr_pror_implied = panelists_expected / gross,
+               pror_implied = panelists_expected / recruited_expected))
+
+(target_gross_nuts1_lower <- target_gross_strata_lower %>%
+     group_by(iso1) %>%
+     summarize(n_sp = sum(n_sp),
+               gross = sum(gross),
+               total = sum(total),
+               respondents_expected = sum(respondents_expected),
+               recruited_expected = sum(recruited_expected),
+               panelists_expected = sum(panelists_expected),
+               grr_implied = respondents_expected / gross,
+               recr_implied = recruited_expected / gross,
+               crecr_implied = recruited_expected / respondents_expected,
+               recr_pror_implied = panelists_expected / gross,
+               pror_implied = panelists_expected / recruited_expected))
+
+(target_gross_lower <- target_gross_strata_lower %>%
+     summarize(n_sp = sum(n_sp),
+               gross = sum(gross),
+               total = sum(total),
+               respondents_expected = sum(respondents_expected),
+               recruited_expected = sum(recruited_expected),
+               panelists_expected = sum(panelists_expected),
+               grr_implied = respondents_expected / gross,
+               recr_implied = recruited_expected / gross,
+               crecr_implied = recruited_expected / respondents_expected,
+               recr_pror_implied = panelists_expected / gross,
+               pror_implied = panelists_expected / recruited_expected))
+
+write.table(target_gross_strata_lower, paste0("output/",  format(Sys.time(), "%d-%m-%Y-%H%M"), "target_gross_strata_lower.csv"),
+            sep = ";",
+            dec = ".",
+            row.names = FALSE)
+
+write.table(target_gross_nuts2_lower, paste0("output/",  format(Sys.time(), "%d-%m-%Y-%H%M"), "target_gross_nuts2_lower.csv"),
+            sep = ";",
+            dec = ".",
+            row.names = FALSE)
+
+write.table(target_gross_nuts1_lower, paste0("output/",  format(Sys.time(), "%d-%m-%Y-%H%M"), "target_gross_nuts1_lower.csv"),
+            sep = ";",
+            dec = ".",
+            row.names = FALSE)
+
+write.table(target_gross_lower, paste0("output/",  format(Sys.time(), "%d-%m-%Y-%H%M"), "target_gross_lower.csv"),
+            sep = ";",
+            dec = ".",
+            row.names = FALSE)
+
+```
+
+### Upper-bound scenario
+
+```{r}
+
+target_gross_strata_upper <- target_gross_strata %>%
+     left_join(target_grr_clusters %>% select(nis1, cluster_group, grr_upper, sp_size_upper),
+               by = c("nis1", "cluster_group")) %>%
+     mutate(grr       = grr_upper,
+            sp_size   = sp_size_upper,
+            recr      = grr * expected_crecr,
+            recr_pror = recr * expected_pror,
+            gross     = n_sp * sp_size,
+            panelists_expected = n_sp * 5,
+            recruited_expected = panelists_expected / expected_pror,
+            respondents_expected = recruited_expected / expected_crecr) %>%
+     arrange(iso1, -grr_upper, -sp_size_upper)
+
+(target_gross_nuts2_upper <- target_gross_strata_upper %>%
+     group_by(nis2, iso) %>%
+     summarize(n_sp = sum(n_sp),
+               gross = sum(gross),
+               total = sum(total),
+               respondents_expected = sum(respondents_expected),
+               recruited_expected = sum(recruited_expected),
+               panelists_expected = sum(panelists_expected),
+               grr_implied = respondents_expected / gross,
+               recr_implied = recruited_expected / gross,
+               crecr_implied = recruited_expected / respondents_expected,
+               recr_pror_implied = panelists_expected / gross,
+               pror_implied = panelists_expected / recruited_expected))
+
+(target_gross_nuts1_upper <- target_gross_strata_upper %>%
+     group_by(iso1) %>%
+     summarize(n_sp = sum(n_sp),
+               gross = sum(gross),
+               total = sum(total),
+               respondents_expected = sum(respondents_expected),
+               recruited_expected = sum(recruited_expected),
+               panelists_expected = sum(panelists_expected),
+               grr_implied = respondents_expected / gross,
+               recr_implied = recruited_expected / gross,
+               crecr_implied = recruited_expected / respondents_expected,
+               recr_pror_implied = panelists_expected / gross,
+               pror_implied = panelists_expected / recruited_expected))
+
+(target_gross_upper <- target_gross_strata_upper %>%
+     summarize(n_sp = sum(n_sp),
+               gross = sum(gross),
+               total = sum(total),
+               respondents_expected = sum(respondents_expected),
+               recruited_expected = sum(recruited_expected),
+               panelists_expected = sum(panelists_expected),
+               grr_implied = respondents_expected / gross,
+               recr_implied = recruited_expected / gross,
+               crecr_implied = recruited_expected / respondents_expected,
+               recr_pror_implied = panelists_expected / gross,
+               pror_implied = panelists_expected / recruited_expected))
+
+write.table(target_gross_strata_upper, paste0("output/",  format(Sys.time(), "%d-%m-%Y-%H%M"), "target_gross_strata_upper.csv"),
+            sep = ";",
+            dec = ".",
+            row.names = FALSE)
+
+write.table(target_gross_nuts2_upper, paste0("output/",  format(Sys.time(), "%d-%m-%Y-%H%M"), "target_gross_nuts2_upper.csv"),
+            sep = ";",
+            dec = ".",
+            row.names = FALSE)
+
+write.table(target_gross_nuts1_upper, paste0("output/",  format(Sys.time(), "%d-%m-%Y-%H%M"), "target_gross_nuts1_upper.csv"),
+            sep = ";",
+            dec = ".",
+            row.names = FALSE)
+
+write.table(target_gross_upper, paste0("output/",  format(Sys.time(), "%d-%m-%Y-%H%M"), "target_gross_upper.csv"),
+            sep = ";",
+            dec = ".",
+            row.names = FALSE)
+
+```
+
+### Medium scenario
+
+```{r}
+
+target_gross_strata_medium <- target_gross_strata %>%
+      left_join(target_grr_clusters %>% select(nis1, cluster_group, grr_medium, sp_size_medium),
+               by = c("nis1", "cluster_group")) %>%
+     mutate(grr       = grr_medium,
+            sp_size   = sp_size_medium,
+            recr      = grr * expected_crecr,
+            recr_pror = recr * expected_pror,
+            gross     = n_sp * sp_size,
+            panelists_expected = n_sp * 5,
+            recruited_expected = panelists_expected / expected_pror,
+            respondents_expected = recruited_expected / expected_crecr) %>%
+     arrange(iso1, -grr_medium, -sp_size_medium)
+
+(target_gross_nuts2_medium <- target_gross_strata_medium %>%
+     group_by(nis2, iso) %>%
+     summarize(n_sp = sum(n_sp),
+               gross = sum(gross),
+               total = sum(total),
+               respondents_expected = sum(respondents_expected),
+               recruited_expected = sum(recruited_expected),
+               panelists_expected = sum(panelists_expected),
+               grr_implied = respondents_expected / gross,
+               recr_implied = recruited_expected / gross,
+               crecr_implied = recruited_expected / respondents_expected,
+               recr_pror_implied = panelists_expected / gross,
+               pror_implied = panelists_expected / recruited_expected))
+
+(target_gross_nuts1_medium <- target_gross_strata_medium %>%
+     group_by(iso1) %>%
+     summarize(n_sp = sum(n_sp),
+               gross = sum(gross),
+               total = sum(total),
+               respondents_expected = sum(respondents_expected),
+               recruited_expected = sum(recruited_expected),
+               panelists_expected = sum(panelists_expected),
+               grr_implied = respondents_expected / gross,
+               recr_implied = recruited_expected / gross,
+               crecr_implied = recruited_expected / respondents_expected,
+               recr_pror_implied = panelists_expected / gross,
+               pror_implied = panelists_expected / recruited_expected))
+
+(target_gross_medium <- target_gross_strata_medium %>%
+     summarize(n_sp = sum(n_sp),
+               gross = sum(gross),
+               total = sum(total),
+               respondents_expected = sum(respondents_expected),
+               recruited_expected = sum(recruited_expected),
+               panelists_expected = sum(panelists_expected),
+               grr_implied = respondents_expected / gross,
+               recr_implied = recruited_expected / gross,
+               crecr_implied = recruited_expected / respondents_expected,
+               recr_pror_implied = panelists_expected / gross,
+               pror_implied = panelists_expected / recruited_expected))
+
+write.table(target_gross_strata_medium, paste0("output/",  format(Sys.time(), "%d-%m-%Y-%H%M"), "target_gross_strata_medium.csv"),
+            sep = ";",
+            dec = ".",
+            row.names = FALSE)
+
+write.table(target_gross_nuts2_medium, paste0("output/",  format(Sys.time(), "%d-%m-%Y-%H%M"), "target_gross_nuts2_medium.csv"),
+            sep = ";",
+            dec = ".",
+            row.names = FALSE)
+
+write.table(target_gross_nuts1_medium, paste0("output/",  format(Sys.time(), "%d-%m-%Y-%H%M"), "target_gross_nuts1_medium.csv"),
+            sep = ";",
+            dec = ".",
+            row.names = FALSE)
+
+write.table(target_gross_medium, paste0("output/",  format(Sys.time(), "%d-%m-%Y-%H%M"), "target_gross_medium.csv"),
+            sep = ";",
+            dec = ".",
+            row.names = FALSE)
+
+```
+
+# Procedure to randomly select sampling points in municipal districts (test)
+
+Municipal districts are selected with replacement and with expected selection frequency proportional to the target population size. A systematic random selection procedure is applied to the list of municipal districts ordered by their target population size. Many municipal districts are large relative to the sample size so that multiple sampling points are selected.
+
+```{r define_function_to_select_psu}
+
+select_psu <- function(sample_size_plan, sp_level = c("nis5", "nis6"), sp_size = 5, seed = as.numeric(today())){
+     
+     set.seed(seed)
+     
+     if(sp_level == "nis5") {
+          pop_dat <- pop_nis5_nlfr
+     } else if(sp_level == "nis6") {
+          pop_dat <- pop_nis6_nlfr
+     }
+     
+     number_of_sampling_points <- sample_size_plan %>% select(nis2, n_sp, total2 = total)
+     
+     # STEP 1: Municipalities/municipal districts are ordered by target population size and each municipality/municipal district is represented by a line segment corresponding to the population size
+     pop_dat_exp <- pop_dat %>%
+          left_join(number_of_sampling_points, by = "nis2")  %>%
+          group_by(nis2) %>%
+          mutate(selection_freq = total / sum(total) * n_sp) %>%
+          arrange(nis2, -total)  %>%
+          mutate(pop_end = cumsum(total),
+                 pop_start = lag(pop_end),
+                 pop_start = ifelse(is.na(pop_start), 1, pop_start + 1)) %>%
+          ungroup()
+     
+     
+     # STEP 2: A series of sampling points is drawn by systematic random sampling
+     selection <- number_of_sampling_points %>%
+          mutate(interval     = total2 / n_sp,  # A fixed interval per province
+                 random_start = map_int(interval, ~ sample(1 : ., 1, replace = FALSE)),  # A random start per province
+                 selected_sp  = map2(random_start,  map2(interval, n_sp, ~ .x * (0 : (.y - 1))),  # A series of jumps
+                                     ~ .x + .y) # Added to random start                  
+          )
+     
+     selection <- selection %>%
+          select("nis2", "selected_sp") %>% 
+          unnest(selected_sp)
+     
+     # STEP 3: The sampling points are matched to the list of municipalities/postcodes
+     selected_nis <- fuzzy_left_join(pop_dat_exp, selection, 
+                                     by = c(
+                                          "nis2"       = "nis2",
+                                          "pop_start" = "selected_sp",
+                                          "pop_end"   = "selected_sp" 
+                                     ),
+                                     match_fun = list(`==`, `<=`, `>=`)
+     )
+     
+     selected_nis <- selected_nis %>%
+          filter(!is.na(selected_sp)) %>%
+          group_by_at(sp_level) %>% 
+          tally()
+     
+     expected_selected_nis <- pop_dat_exp %>%
+          left_join(selected_nis, by = sp_level) %>%
+          mutate(n = ifelse(is.na(n), 0, n),
+                 sp_size = sp_size,
+                 cluster_size = ifelse(n > 0, n * sp_size, NA),
+                 nsect = ifelse(n > 0,  nsect, NA))
+     
+      expected_selected_nis <- expected_selected_nis %>%
+      left_join(target_grr_clusters %>% select(cluster_group, sp_size_medium), by = c("nis1", "cluster_group")) %>%
+      mutate(sp_size_medium = round(sp_size_medium),
+             gross = n * sp_size_medium)
+             
+     
+     expected_selected_nis
+     
+}
+
+```
+
+```{r select_psu}
+
+# nis5_selected_5 <- select_psu(target_gross_nuts2_medium, sp_size = 5, sp_level = "nis5")
+# nis6_selected_5 <- select_psu(target_gross_nuts2_medium, sp_size = 5, sp_level = "nis6")
+
+```
+
+The following municipalities are drawn in the test samples (with net sampling point size equal to 5 persons).
+
+```{r show_sample}
+
+# head(nis5_selected_5 %>%
+#           select(nis2, name_nl5, n, selection_freq, cluster_group) %>%
+#           arrange(-selection_freq, -n), n = 15)
+# 
+# head(nis6_selected_5 %>% 
+#           select(nis2, name_nl6, n, selection_freq, cluster_group) %>% 
+#           arrange(-selection_freq, -n), n = 15)
+# 
+# nis5_selected_5 %>%
+#      mutate(selection_diff = n - selection_freq) %>%
+#      pull(selection_diff) %>%
+#      summary()
+#      
+# write.table(nis5_selected_5 %>% select(nis2, name_nl5, n, sp_size_medium, gross, selection_freq) %>% arrange(-selection_freq, -n), 
+#             paste0("output/", format(Sys.time(), "%d-%m-%Y-%H%M"), 
+#                    "nis5_selected_5.csv"), sep = ";", dec = ".", row.names = FALSE)
+# 
+# write.table(nis6_selected_5 %>% select(nis2, name_nl6, n, sp_size_medium, gross, selection_freq) %>% arrange(-selection_freq, -n), 
+#             paste0("output/", format(Sys.time(), "%d-%m-%Y-%H%M"), 
+#                    "nis6_selected_5.csv"), sep = ";", dec = ".", row.names = FALSE)
+
+```
+
+```{r operational_efficiency}
+
+# with(nis5_selected_5 %>% filter(n > 0), sum(nsect))
+# with(nis6_selected_5 %>% filter(n > 0), sum(nsect))
+# 
+# with(nis5_selected_5 %>% filter(n > 0), length(unique(nis5)))
+# with(nis6_selected_5 %>% filter(n > 0), length(unique(nis5)))
+
+```
+
+```{r statistical_efficiency}
+
+# with(nis5_selected_5 %>% filter(n > 0), summary(cluster_size))
+# with(nis6_selected_5 %>% filter(n > 0), summary(cluster_size))
+# 
+# deff_nis5 <- nis5_selected_5 %>% filter(n > 0) %>%
+#      summarize(w_average = mean(2 * cluster_size))  %>%
+#      expand_grid(rho = seq(0, 1, by = 0.01)) %>%
+#      mutate(deffc = 1 + (w_average - 1) * rho,
+#             effn  = round(4000 / deffc))
+# 
+# deff_nis6 <- nis6_selected_5 %>% filter(n > 0) %>%
+#      summarize(w_average = mean(2 * cluster_size))  %>%
+#      expand_grid(rho = seq(0, 1, by = 0.01)) %>%
+#      mutate(deffc = 1 + (w_average - 1) * rho,
+#             effn  = round(4000 / deffc))
+# 
+# deff_nis9 <- nis6_selected_5 %>% filter(n > 0) %>%
+#      summarize(w_average = 10)  %>%
+#      expand_grid(rho = seq(0, 1, by = 0.01)) %>%
+#      mutate(deffc = 1 + (w_average - 1) * rho,
+#             effn  = round(4000 / deffc))
+# 
+# plot_data <- deff_nis5 %>% mutate(design = "nis5") %>% 
+#      bind_rows(deff_nis6 %>% mutate(design = "nis6")) %>%
+#      bind_rows(deff_nis9 %>% mutate(design = "nis9"))
+# 
+# p <- ggplot(plot_data, aes(x = rho, y = effn, col = design)) +
+#      geom_line()
+
+```
+
+# Simulations of the procedure (NIS6 with target net panelists per SP = 5)
+
+```{r run_simulations}
+
+seed_list <- seq(from = as.numeric(today()), by = 1, length.out = 10)
+                  
+nis6_selected_5_10samples <- map(seed_list, function(s) select_psu(target_gross_nuts2_medium, 
+                                                                    sp_size = 5, 
+                                                                    sp_level = "nis6",
+                                                                    seed = s))
+
+# simulations <- seed_list %>%
+#      expand_grid(sp_size  = c(5, 10), 
+#                  sp_level = c("nis5", "nis6"))
+# simulations <- simulations %>%
+#      mutate(selected = pmap(list(sp_size, sp_level, nr), function(x, y, z) select_psu(sample_nuts2, sp_size = x, sp_level = y, seed = z)))
+
+```
+
+```{r summarize_simulations}
+
+temp <- map(nis6_selected_5_10samples, function(dat) dat %>% summarise(gross = sum(gross)))
+summary(unlist(temp))
+
+```
+
+
+
+
+
+
+     
+
+
+```{r, eval = FALSE}
+
+
+# simulations <- simulations %>%
+#      mutate(nsect     = map_dbl(selected, ~ sum(.$nsect, na.rm = TRUE)),
+#             w_mean    = map_dbl(selected, ~ mean(.$size, na.rm = TRUE))) %>%
+#      expand_grid(rho  = seq(0.01, 0.08, by = 0.01)) %>%
+#      mutate(deffc     = 1 + (w_mean - 1) * rho,
+#             effn      = round(4000 / deffc))
+# 
+# simulations_by_sp_rho <- simulations %>%
+#      group_by(sp_size, sp_level, rho) %>%
+#      summarise(mean_nsect = mean(nsect),
+#                se_nsect   = sd(nsect) / sqrt(length(nsect)),
+#                mean_w_mean  = mean(w_mean),
+#                mean_deffc   = mean(deffc),
+#                mean_effn  = mean(effn),
+#                se_effn    = sd(effn) / sqrt(length(effn))) %>%
+#      mutate(lower_nsect   = mean_nsect - qnorm(0.975) * se_nsect,
+#             upper_nsect   = mean_nsect + qnorm(0.975) * se_nsect,
+#             lower_effn    = mean_effn - qnorm(0.975) * se_effn,
+#             upper_effn    = mean_effn + qnorm(0.975) * se_effn)
+# 
+# write.table(simulations, paste0("output/", format(Sys.time(), "%d-%m-%Y-%H%M"), 
+#                                 "simulations.csv"), sep = ";", dec = ".", row.names = FALSE)
+# 
+# write.table(simulations_by_sp_rho, paste0("output/", format(Sys.time(), "%d-%m-%Y-%H%M"), 
+#                                 "simulations_by_sp_rho.csv"), sep = ";", dec = ".", row.names = FALSE)
+
+```
+
+
+
+
+> Discussion point: Whether to activate sample units from the (base and) reserve sample by achieved response rates? (Or else: What procedure for setting out the reserve sample? Should it be mentioned in the call for tender that reserve sample is available? Who can decide whether the reserve sample is activated? By what criteria (e.g., same number of units per sampling points set out or larger or samller number of units on the basis of achieved response rate?)
+                                                                                                                     
+                                                                                                                     > Discussion point: Whether to keep sampling clusters intact as interviewer work clusters (no interpenetration and thus confounding of area and interviewer effects)?
+                                                                                                                          
+                                                                                                                          
+                                                                                                                          

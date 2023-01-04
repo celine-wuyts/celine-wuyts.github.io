@@ -1,0 +1,37 @@
+project:
+  type: website
+  output-dir: docs
+
+website:
+  title: Celine Wuyts
+  favicon: kuleuven.ico
+
+  navbar:
+    left:
+      - text: About me
+        href: index.qmd
+      - text: Current projects
+        menu: 
+          - text: Gender measurement
+            href: gender_measurement.qmd
+          - text: Sampling for the Belgian online probability panel
+            href: bopp_sampling.qmd
+    right:
+      - icon: linkedin
+        href: https://www.linkedin.com/in/celine-wuyts-79312660
+      - icon: book
+        href: https://www.researchgate.net/profile/Celine-Wuyts
+        
+    
+  page-footer: 
+   left: A [Quarto](quarto.org) website
+   right: Donate to a [GiveWell](givewel.org) top charity today!
+
+format:
+  html:
+    theme: 
+      - flatly
+      - styles.scss
+    toc: true
+
+

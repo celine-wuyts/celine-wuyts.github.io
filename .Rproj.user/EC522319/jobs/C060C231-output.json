@@ -1,0 +1,6 @@
+[2,"\n"]
+[1,"\r\n\r\nprocessing file: bopp_sampling_report.qmd\r\n"]
+[1,"\r  |                                                                            \r  |                                                                      |   0%\r  |                                                                            \r  |......................................................................| 100%\r\n   inline R code fragments\r\n\r\n\r\noutput file: bopp_sampling_report.knit.md\r\n\r\n"]
+[1,"pandoc \n  to: latex\n  output-file: bopp_sampling_report.tex\n  standalone: true\n  pdf-engine: xelatex\n  variables:\n    graphics: true\n    tables: true\n  default-image-extension: pdf\n  \nmetadata\n  documentclass: scrartcl\n  classoption:\n    - DIV=11\n    - numbers=noendperiod\n  papersize: letter\n  header-includes:\n    - '\\KOMAoption{captions}{tableheading}'\n  block-headings: true\n  \n"]
+[1,"running xelatex - 1\n"]
+[1,"  This is XeTeX, Version 3.141592653-2.6-0.999993 (MiKTeX 22.1) (preloaded format=xelatex.fmt)\n   restricted \\write18 enabled.\n  entering extended mode\n  \n\ncompilation failed- missing packages (automatic installed disabled)\nsee bopp_sampling_report.log for more information.\n"]

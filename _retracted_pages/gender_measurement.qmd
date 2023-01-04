@@ -1,0 +1,126 @@
+
+```{r setup, echo = FALSE}
+
+knitr::opts_knit$set(root.dir = "I:/research_projects/2022-gender_measurement")
+knitr::opts_chunk$set(echo = FALSE, warning = FALSE)
+
+```
+
+## Background
+
+### Respondent's voice
+
+The status of surveys as representative and legitimate instruments in the social sciences depends on respondents feeling represented and recognized, allowed to voice their own opinions. 
+
+One specific group of respondents which scholars have identified as not properly recognized in most survey research are people who do not identify with the gender binary.
+
+### Observed and self-reported gender
+
+In face-to-face surveys, gender is frequently interviewer-observed. Interviewer observation of supposedly obvious, visible characteristics aligns with Grice’s relevance principle of effective conversation (to omit irrelevant information). However, interviewer observations depend on interviewers’ judgement and may be inaccurate and/or deviate from respondents’ self-evaluations or self-categorizations. 
+
+In web or other self-completion surveys, survey questions about one's gender appear much more acceptable, as there is no observer present to "see the obvious".
+
+### Attitudes towards gender equality and inclusive gender measurement
+
+A common concern in the discussion on the issue of gender measurement in general-population social surveys is that a self-reported (and possibly more inclusive) gender measurement, though allowing a part of the population to feel more recognized, may be offensive to a majority of the population. This concern remains mostly speculative, since very little is currently known about people’s attitudes towards the gender binary versus inclusive gender language/measurement.
+
+## Study 1
+
+### Study objectives
+
+To monitor how gender/sex is measured in surveys in Belgium.
+
+### Study design
+
+I have enrolled in a commercial opt-in panel, and try to complete as many questionnaires as possible (earning between 0.5 and 1.5 euro per questionnaire in the process).
+I make screenshots of the survey questions asking about sex or gender and code the exact question formulation, the question type (closed single-choice or otherwise) and the particular response options presented, as well as their format (verbal labels or icons).
+
+```{r load_libraries, include = FALSE}
+
+Sys.setlocale("LC_TIME", "English")
+
+library(tidyverse)
+library(readxl)
+library(lubridate)
+library(kableExtra)
+
+```
+
+```{r}
+
+gndr_input <- read_excel("./a-input/gender_measurement_jouwmening.xlsx")
+
+```
+
+```{r}
+
+gndr <- gndr_input
+
+```
+
+```{r}
+
+start_datacollection <- with(gndr, min(date, na.rm = TRUE)) %>% as_date()
+end_datacollection   <- with(gndr, max(date, na.rm = TRUE)) %>% as_date()
+
+```
+
+### Preliminary findings
+
+```{r}
+
+gndr_variables <- names(gndr %>% select_if(function(x) max(x, na.rm = TRUE) == 1))
+
+gndr <- gndr %>%
+  mutate_at(all_of(gndr_variables), replace_na, replace = 0) %>%
+  mutate(question_translated = tolower(question_translated))
+
+gndr <- gndr %>%
+  rowwise() %>%
+  mutate(n_options = sum(c_across(all_of(gndr_variables)), na.rm = TRUE))
+
+gndr <- gndr %>%  
+  mutate(question_typology = case_when(grepl("sex", question_translated) ~ "Sex",
+                                       grepl("gender", question_translated) ~ "Gender",
+                                       TRUE ~ "None"))
+
+
+gndr_combinations <- gndr %>% 
+  select(all_of(gndr_variables)) %>%
+  group_by_all() %>% 
+  count()
+
+# gndr_combinations %>% arrange(-n) %>% print.data.frame()
+
+gndr <- gndr %>%
+  mutate(response_typology = case_when(n_options == 2 ~ "Binary",
+                                       (n_options == 3 & other == 1) | 
+                                         (n_options == 4 & other == 1 & `I prefer not to say` == 1) ~ "Binary_other",
+                                       TRUE ~ "Broader"))
+
+```
+
+Between `r format(start_datacollection, format = "%d %B %Y")` and `r format(end_datacollection, format = "%d %B %Y")`, I collected `r nrow(gndr)` screen snippets from `r n_distinct(gndr$nr)` different surveys.
+
+```{r}
+
+table_data <- gndr %>% 
+  group_by(question_typology, response_typology) %>%
+  count() %>%
+  arrange(-n)
+
+kable(table_data,
+      col.names = c("Terminology", "Number of options", "Freq.")) %>%
+  kable_styling(full_width = TRUE)
+
+```
+
+About 1/3 of the surveys referred to sex rather than gender, and presented only two (gender) options ("man" and "woman"). Thus, not only do surveys leave little room for those who do not confirm to the sex binary and/or do not identify with the gender binary, they also confuse sex with gender.
+
+Only `r table_data %>% filter(question_typology != "Sex" & response_typology != "Binary") %>% pull(n) %>% sum()` surveys did not refer to sex AND allowed for additional response options.
+
+## Study 2
+
+### Study objectives
+
+To chart attitudes towards the gender binary in Belgium, and to evaluate antecedents (age, gender, conservative attitudes, traditional values) and possible consequences.

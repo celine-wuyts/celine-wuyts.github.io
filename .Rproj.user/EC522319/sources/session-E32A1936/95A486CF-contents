@@ -1,0 +1,55 @@
+
+---
+title: "Sampling for the Belgian online probability panel"
+author: Celine Wuyts
+date: "`r format(Sys.time(), '%d %B %Y')`"
+pdf-engine: xelatex
+documentclass: scrbook
+format:
+  bookdown::tufte_book2
+  html:
+    code-fold: true
+---
+
+# Introduction
+
+This report describes the sampling procedure for the initial recruitment cohort (2023) of the Belgian online probability panel.
+
+The 
+
+
+
+The next Section 2 describes the ESS round 8 sampling design, including the target and survey population, sampling frame, sample size, sampling methods and population members’ selection probabilities. A few paragraphs are dedicated to the discussion that took place within the national team and with the ESS Sampling Expert Panel on the exclusion of the German-speaking Community from the survey population.
+The following six sections each focus on one of the six main activities in the sampling procedure that were undertaken roughly in chronological order, namely the authorization request to the Privacy Commission (Section 4), the consultation with the ESS Sampling Expert Panel on the planned sampling design (Section 5), the selection of municipalities as primary sampling units (Section 6), the delivery of the sample by the National Register (Section 7), the evaluation of the gross sample representativity (Section 9), and the delivery of address updates from the National Register during the fieldwork (Section 8).
+The final Section 10 summarizes the main conclusions and provides recommendations for the sampling procedure in future rounds of the ESS in Belgium.
+
+
+# Target and study population
+
+## Target population
+
+## Access to the National Register
+
+# Net sample size plan
+
+
+# Sampling procedure
+
+
+
+```{r setup, include = FALSE}
+
+Sys.setlocale("LC_ALL", "English")
+
+#options(tibble.width = Inf)
+
+```
+
+```{r set_design_parameters}
+
+target_net  <- data.frame(group       = c("nl", "fr"),
+                          n_panelists = c(2000, 2000))
+
+prop_nl_in_BRU <- 0.1
+
+```

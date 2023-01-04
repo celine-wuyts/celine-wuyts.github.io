@@ -1,0 +1,16 @@
+{
+  "hash": "1ac634fb8ebec2a1ffdbde3f27a9ab88",
+  "result": {
+    "markdown": "---\ntitle: \"Sampling for the Belgian online probability panel\"\nsubtitle: \"Sample size plan and first-level sampling procedure\"\n\n---\n\n\n\n\n\n\n",
+    "supporting": [
+      "bopp_sampling_files"
+    ],
+    "filters": [
+      "rmarkdown/pagebreak.lua"
+    ],
+    "includes": {},
+    "engineDependencies": {},
+    "preserve": {},
+    "postProcess": true
+  }
+}

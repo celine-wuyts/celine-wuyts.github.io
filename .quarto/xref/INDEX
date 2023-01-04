@@ -1,0 +1,26 @@
+{
+  "about.qmd": {
+    "about.html": "95adfc44"
+  },
+  "index.qmd": {
+    "index.html": "36ef0da9"
+  },
+  "gender_measurement.qmd": {
+    "gender_measurement.html": "d8c069b5"
+  },
+  "index.ipynb": {
+    "index.html": "a6596a64"
+  },
+  "projects.qmd": {
+    "projects.html": "c5048dec"
+  },
+  "bopp_sampling.qmd": {
+    "bopp_sampling.html": "38aca67c"
+  },
+  "resume.qmd": {
+    "resume.html": "c07415f0"
+  },
+  "gender_stereotypes.qmd": {
+    "gender_stereotypes.html": "9cdf91e7"
+  }
+}

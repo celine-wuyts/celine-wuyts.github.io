@@ -1,0 +1,11 @@
+
+---
+title: "Gender measurement in survey research"
+subtitle: "Practice and attitudes in Belgium"
+
+---
+
+```{r child="I:/research_projects/2022-gender_measurement/c-output/webpage.qmd"}
+
+```
+
