@@ -7,7 +7,7 @@ about:
 
 I'm a survey methodologist, R devotee and lifelong student.
 
-{{< fa solid download >}} Download my [CV](./wuyts_celine_cv_web.pdf).
+{{< fa solid download >}} Download my [CV](www/wuyts_celine_cv_web.pdf).
 
 {{< fa solid person-walking-arrow-right >}} Find me on [{{< fa brands linkedin >}}](https://www.linkedin.com/in/celine-wuyts-79312660) and [{{< ai researchgate >}}](https://www.researchgate.net/profile/Celine-Wuyts).
 
