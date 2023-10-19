@@ -7,16 +7,9 @@ about:
 
 I'm a survey methodologist, R devotee and lifelong student.
 
-I am associated with the [Centre for Sociological Research, University of Leuven](https://soc.kuleuven.be/ceso) and am currently pursuing the [MIT Master’s in Data, Economics, and Development Policy (DEDP)](https://economics.mit.edu/academic-programs/masters-programs/masters-data-economics-and-development-policy-dedp) (Class of 2023).
-
-{{< fa solid download >}} Download my [resumé](_assets/202301 Celine Wuyts resumé.pdf).
+{{< fa solid download >}} Download my [CV](_assets/202301 Celine Wuyts resumé.pdf).
 
 {{< fa solid person-walking-arrow-right >}} Find me on [{{< fa brands linkedin >}}](https://www.linkedin.com/in/celine-wuyts-79312660) and [{{< ai researchgate >}}](https://www.researchgate.net/profile/Celine-Wuyts).
-
-
-
-![DEDP](_assets/blended-masters_110122.jpg)
-*Source:* [Master’s in Data, Economics, and Development Policy (DEDP) | Student Directory](https://economics.mit.edu/academic-programs/masters-programs/masters-data-economics-and-development-policy-dedp/student)
 
 
 ::: {.column-page layout-ncol=2}
@@ -34,11 +27,10 @@ I am associated with the [Centre for Sociological Research, University of Leuven
 ::: {.column width="50%"}
 #### Interests
 
-{{< fa solid heart >}} Economic decision-making (under uncertainty/scarcity)  
-{{< fa solid heart >}} Gender stereotypes, social norms and networks  
+{{< fa solid heart >}} Human development, social inclusion and protection
+{{< fa solid heart >}} Gender equality, female empowerment
 {{< fa solid heart >}} Reproducible research  
 {{< fa solid heart >}} Survey error as social artefacts  
-{{< fa solid heart >}} [Effective altruism](https://www.effectivealtruism.org/)  
 
 :::
 :::
