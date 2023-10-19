@@ -22,5 +22,14 @@
   },
   "gender_stereotypes.qmd": {
     "gender_stereotypes.html": "9cdf91e7"
+  },
+  "current_projects.qmd": {
+    "current_projects.html": "02fd2794"
+  },
+  "projects/gender_measurement.qmd": {
+    "gender_measurement.html": "925646af"
+  },
+  "projects/gender_stereotypes.qmd": {
+    "gender_stereotypes.html": "50e65d06"
   }
 }

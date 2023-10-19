@@ -10,21 +10,17 @@ website:
     left:
       - text: About me
         href: index.qmd
-      - text: Resumé
-        href: "_assets/202301 Celine Wuyts resumé.pdf"
+      - text: CV
+        href: "_assets/wuyts_celine_cv_web.pdf"
       - text: Current projects
-        menu: 
-          - text: Gender measurement
-            href: gender_measurement.qmd
-          - text: Gender stereotypes
-            href: gender_stereotypes.qmd
+        href: current_projects.qmd
     right:
       - icon: linkedin
         href: https://www.linkedin.com/in/celine-wuyts-79312660
       - text: "{{< ai researchgate >}}"
         href: https://www.researchgate.net/profile/Celine-Wuyts
       - icon: envelope
-        href: mailto:celine.wuyts@kuleuven.be
+        href: mailto:celine_w@alum.mit.edu
         
     
   page-footer: 
