@@ -20,6 +20,7 @@ website:
       - text: "{{< ai researchgate >}}"
         href: https://www.researchgate.net/profile/Celine-Wuyts
       - icon: envelope
+      
         href: mailto:celine_w@alum.mit.edu
         
     

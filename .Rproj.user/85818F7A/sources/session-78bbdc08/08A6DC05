@@ -1,26 +1,26 @@
 {
-    "id": "BF99A027",
+    "id": "08A6DC05",
     "path": "C:/Users/celin/OneDrive/_personal/academic_website/_quarto.yml",
     "project_path": "_quarto.yml",
     "type": "yaml",
     "hash": "0",
     "contents": "",
     "dirty": false,
-    "created": 1672872515974.0,
+    "created": 1697903849055.0,
     "source_on_save": false,
     "relative_order": 2,
     "properties": {
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "14,30",
+        "cursorPosition": "17,20",
         "scrollLine": "11"
     },
     "folds": "",
-    "lastKnownWriteTime": 1697759204,
+    "lastKnownWriteTime": 1697906328,
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1697759204130,
+    "last_content_update": 1697906328790,
     "read_only": false,
     "read_only_alternatives": []
 }
