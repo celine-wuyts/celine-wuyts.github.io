@@ -4,7 +4,7 @@ project:
 
 website:
   title: Celine Wuyts
-  favicon: kuleuven.ico
+  favicon: 'www/favicon-32x32.ico'
 
   navbar:
     left:
