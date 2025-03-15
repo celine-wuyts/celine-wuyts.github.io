@@ -17,20 +17,20 @@ I'm a survey methodologist, R devotee and lifelong student.
 ::: {.column width="50%"}
 #### Skills
 
-{{< fa solid hat-wizard >}} Data wrangling, analysis and visualization  
+{{< fa solid hat-wizard >}} Research design  
 {{< fa solid hat-wizard >}} Statistical modeling  
-{{< fa solid hat-wizard >}} Survey management and coordination  
-{{< fa solid hat-wizard >}} Questionnaire design and programming  
+{{< fa solid hat-wizard >}} Data wrangling, analysis and visualization  
+{{< fa solid hat-wizard >}} Report writing  
 
 :::
 
 ::: {.column width="50%"}
 #### Interests
 
-{{< fa solid heart >}} Education, social inclusion and protection  
-{{< fa solid heart >}} Gender equality, female empowerment  
-{{< fa solid heart >}} Reproducible research  
-{{< fa solid heart >}} Survey error as social artefacts  
+{{< fa solid heart >}} Education and training    
+{{< fa solid heart >}} Digital inclusion  
+{{< fa solid heart >}} Gender  
+{{< fa solid heart >}} Survey research methods
 
 :::
 :::
