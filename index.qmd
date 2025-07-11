@@ -28,7 +28,7 @@ I'm a survey methodologist, R devotee and lifelong student.
 #### Interests
 
 {{< fa solid heart >}} Education and training    
-{{< fa solid heart >}} Digital inclusion  
+{{< fa solid heart >}} Digital and social inclusion  
 {{< fa solid heart >}} Gender  
 {{< fa solid heart >}} Survey research methods
 
