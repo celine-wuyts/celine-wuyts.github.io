@@ -10,7 +10,7 @@ I'm a survey methodologist, R enthusiast, and lifelong learner.
 I currently work at [Innovations for Poverty Action](https://poverty-action.org/) on research design, survey methodology, and applied development research.
 
 
-{{< fa solid download >}} Download my [CV](_assets/wuyts_celine_cv_web.pdf).
+{{< fa solid download >}} Download my [CV](wwww/wuyts_celine_cv_web.pdf).
 
 {{< fa solid person-walking-arrow-right >}} Find me on [{{< fa brands linkedin >}}](https://www.linkedin.com/in/celine-wuyts-79312660) and [{{< ai researchgate >}}](https://www.researchgate.net/profile/Celine-Wuyts).
 
