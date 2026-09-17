@@ -5,7 +5,10 @@ about:
   image: me.jpg
 ---
 
-I'm a survey methodologist, R devotee and lifelong student.
+I'm a survey methodologist, R enthusiast, and lifelong learner.
+
+I work at at Innovations for Poverty Action on research design, survey methodology, and applied development research.
+
 
 {{< fa solid download >}} Download my [CV](www/wuyts_celine_cv_web.pdf).
 
@@ -17,19 +20,21 @@ I'm a survey methodologist, R devotee and lifelong student.
 ::: {.column width="50%"}
 #### Skills
 
-{{< fa solid hat-wizard >}} Research design  
-{{< fa solid hat-wizard >}} Statistical modeling  
-{{< fa solid hat-wizard >}} Data wrangling, analysis and visualization  
-{{< fa solid hat-wizard >}} Report writing  
+{{< fa solid hat-wizard >}} Research design
+{{< fa solid hat-wizard >}} Survey methodology
+{{< fa solid hat-wizard >}} Statistical modeling
+{{< fa solid hat-wizard >}} Data wrangling, analysis and visualization
+{{< fa solid hat-wizard >}} Report writing
 
 :::
 
 ::: {.column width="50%"}
 #### Interests
 
-{{< fa solid heart >}} Education and training    
-{{< fa solid heart >}} Digital and social inclusion  
-{{< fa solid heart >}} Gender  
+{{< fa solid heart >}} Gender and women's empowerment
+{{< fa solid heart >}} Digital and social inclusion
+{{< fa solid heart >}} Education and training 
+{{< fa solid heart >}} Child health and development
 {{< fa solid heart >}} Survey research methods
 
 :::
